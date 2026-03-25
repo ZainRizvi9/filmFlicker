@@ -502,10 +502,6 @@ def main():
     st.title("FilmFlicker")
     st.write("Swipe through movies. Pick your favorites. Get recommendations.")
 
-    st.sidebar.header("Settings")
-    api_key = st.sidebar.text_input("Anthropic API Key (optional)", type="password")
-    if api_key:
-        st.sidebar.success("AI mode on")
 
     ensure_session_defaults()
 
@@ -540,7 +536,7 @@ def main():
 
             if not st.session_state.recs_current:
                 with st.spinner("Finding movies for you..."):
-                    recs_obj = get_ai_recommendations(st.session_state.liked, api_key) if api_key else None
+                    recs_obj = None
                     if not recs_obj:
                         recs_obj = get_fallback_recommendations(st.session_state.liked)
 
