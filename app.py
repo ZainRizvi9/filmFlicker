@@ -627,8 +627,9 @@ def normalize_recs(recs_obj, liked_movies):
 
 def ensure_session_defaults():
     defaults = {
-        "liked": [], "seen": set(), "show_results": False,
-        "recs_current": [], "rec_pool": [], "recs_seen_ids": set(),
+    "liked": [], "seen": set(), "show_results": False,
+    "recs_current": [], "rec_pool": [], "recs_seen_ids": set(),
+    "all_movies": [],
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -645,10 +646,14 @@ def main():
 
     # mix trending with curated list, sample randomly so it's different each session
     trending = get_trending()
-    curated = load_movies(random.sample(ALL_TITLES, min(100, len(ALL_TITLES))))
-    seen_ids = {m["id"] for m in trending + curated}
-    all_movies = trending + [m for m in curated if m["id"] not in {t["id"] for t in trending}]
-    random.shuffle(all_movies)
+
+    if not st.session_state.all_movies:
+        curated = load_movies(tuple(sorted(random.sample(ALL_TITLES, min(100, len(ALL_TITLES))))))
+        all_movies = trending + [m for m in curated if m["id"] not in {t["id"] for t in trending}]
+        random.shuffle(all_movies)
+        st.session_state.all_movies = all_movies
+    else:
+        all_movies = st.session_state.all_movies
 
     unseen = [m for m in all_movies if m["id"] not in st.session_state.seen]
 
@@ -672,6 +677,7 @@ def main():
                 st.session_state.seen = set()
                 st.session_state.recs_seen_ids = set()
                 st.session_state.show_results = False
+                st.session_state.all_movies = []
                 st.rerun()
         else:
             st.subheader("Your Recommendations")
@@ -714,8 +720,9 @@ def main():
                 st.session_state.seen = set()
                 st.session_state.recs_seen_ids = set()
                 st.session_state.show_results = False
+                st.session_state.all_movies = []
                 st.rerun()
-        return
+            return
 
     st.subheader("Pick your favorite (or skip)")
     current_4 = unseen[:4]
